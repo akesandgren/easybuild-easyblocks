@@ -72,7 +72,8 @@ class RPackage(ExtensionEasyBlock):
         """Extra easyconfig parameters specific to RPackage."""
         extra_vars = ExtensionEasyBlock.extra_options(extra_vars=extra_vars)
         extra_vars.update({
-            'exts_subdir': ['', "Subdirectory where R extensions should be installed info", CUSTOM],
+            'exts_subdir': ['', "Subdirectory where R extensions should be installed into", CUSTOM],
+            'libs_site': [True, "Use R_LIBS_SITE instead of R_LIBS to install R packages", CUSTOM],
             'unpack_sources': [False, "Unpack sources before installation", CUSTOM],
         })
         return extra_vars
@@ -232,7 +233,12 @@ class RPackage(ExtensionEasyBlock):
         return super(RPackage, self).sanity_check_step(EXTS_FILTER_R_PACKAGES, *args, **kwargs)
 
     def make_module_extra(self):
-        """Add install path to R_LIBS_SITE"""
-        # prepend R_LIBS_SITE with install path
-        extra = self.module_generator.prepend_paths("R_LIBS_SITE", [self.cfg['exts_subdir']])
+        """Add package to R library"""
+        if self.cfg['libs_site']:
+            r_library = 'R_LIBS_SITE'
+        else:
+            r_library = 'R_LIBS'
+
+        # prepend install path to R library
+        extra = self.module_generator.prepend_paths(r_library, [self.cfg['exts_subdir']])
         return super(RPackage, self).make_module_extra(extra)
